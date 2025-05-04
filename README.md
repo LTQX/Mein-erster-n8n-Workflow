@@ -11,10 +11,10 @@ Ich habe mit **n8n** einen KI-gesteuerten Flow erstellt, der Folgendes tut:
 
 2. **Gmail Node**: Der Flow greift automatisch auf mein Gmail-Postfach zu und holt sich die **10 neuesten E-Mails** aus dem Posteingang.
 
-3. **Texte zusammenführen**: Diese 10 E-Mails werden mit einem **Function Node** (bzw. Aggregate-Technik) zu **einem großen Textblock** zusammengeführt.
+3. **Texte zusammenführen**: Diese 10 E-Mails werden mit einem **Function Node** (bzw. Aggregate-Technik) zu **einem grossen Textblock** zusammengeführt.
 
 4. **DeepSeek-Verbindung**:  
-   Der kombinierte Text fließt in einen **HTTP Request Node**, der mit **DeepSeek AI** verbunden ist.  
+   Der kombinierte Text fliesst in einen **HTTP Request Node**, der mit **DeepSeek AI** verbunden ist.  
    Die Kommunikation läuft über einen **API Key**, und die E-Mail-Daten werden über ein **sauber formatiertes JSON im Body** gesendet.
 
 5. **Zusammenfassung**:  

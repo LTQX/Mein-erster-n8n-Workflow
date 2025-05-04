@@ -1,0 +1,242 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e6b0ae84-8c40-46e8-ae5b-8f23dc340ae6",
+      "name": "Telegram Trigger",
+      "webhookId": "7cc9622a-20ad-4e2e-b5a3-372c38698918",
+      "credentials": {
+        "telegramApi": {
+          "id": "tngQ1Gsvch3W2SII",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cf2ea497-82dd-4551-b050-82b9fb6cbe66",
+              "leftValue": "={{$json[\"message\"][\"text\"]}}",
+              "rightValue": "lies meine email",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "5e126275-2455-4bbb-9907-32259cda403f",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "6f257b93-b522-47af-b7aa-a32541dea93e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 10,
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        440,
+        -100
+      ],
+      "id": "59a567b5-13dd-4e94-a17e-468be9f5976d",
+      "name": "Gmail",
+      "webhookId": "3de1c793-e4a5-4291-bc47-2d3657f41777",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "S7M54Zh4a2ri01Ap",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.deepseek.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer sk-4d5caab72b364af5a5975dd30285ed57"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"deepseek-chat\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Du bist ein hilfreicher Assistent.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Fasse diese E-Mails zusammen:\\n{{ $json['mergedText'] }}\"\n    }\n  ],\n  \"stream\": false\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        900,
+        -100
+      ],
+      "id": "14cf21c5-902d-4b74-baed-f9e3ead9a7b5",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $node[\"Telegram Trigger\"].json[\"message\"][\"chat\"][\"id\"] }}",
+        "text": "={{ $json[\"choices\"][0][\"message\"][\"content\"] }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1140,
+        -100
+      ],
+      "id": "29317a5e-9882-48bb-a2b2-dd2bb5ad190f",
+      "name": "Telegram",
+      "webhookId": "55b6833a-fb36-4b2a-ae27-2911a9841f0c",
+      "credentials": {
+        "telegramApi": {
+          "id": "tngQ1Gsvch3W2SII",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "snippet",
+              "renameField": true,
+              "outputFieldName": "mergedText"
+            }
+          ]
+        },
+        "options": {
+          "disableDotNotation": false,
+          "mergeLists": true,
+          "includeBinaries": false,
+          "keepMissing": false
+        }
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        660,
+        -100
+      ],
+      "id": "a1143daf-2e54-4d7a-8be5-f9e8d931ac64",
+      "name": "Aggregate"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3e67edb6-db7e-46c4-9d4c-7701a68b9be6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9ba1d38532133cc92dd248a4e8ea2058e1917e65d29528ed34a0bcfd079a9642"
+  },
+  "id": "uFlY9PV5ImueX50T",
+  "tags": []
+}
